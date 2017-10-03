@@ -6,26 +6,12 @@ import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.NetworkResponse;
-import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Map;
 
 import static com.ecksday.borrowtracker.MainActivity.hideKeyboardFrom;
 
@@ -65,7 +51,8 @@ public class LoginRegisterActivity extends AppCompatActivity {
                         if (CheckEditTextIsNotEmpty()) {
 
                             // If EditText is not empty and CheckEditText = True then this block will execute.
-
+                            startActivity(new Intent(LoginRegisterActivity.this, MainActivity.class));
+                            /*
                             StringRequest stringRequest = new StringRequest(Request.Method.POST, HttpLoginURL, new Response.Listener<String>() {
                                 @Override
                                 public void onResponse(String stringResponse) {
@@ -87,7 +74,7 @@ public class LoginRegisterActivity extends AppCompatActivity {
                                             Snackbar snackbar = Snackbar
                                                     .make(view, "Logged In successfully as " + F_Name_Holder + " " + L_Name_Holder, Snackbar.LENGTH_LONG);
                                             snackbar.show();
-                                            startActivity(new Intent(LoginRegisterActivity.this, MainActivity.class));
+
                                         }
                                         catch (JSONException e) {
                                             e.printStackTrace();
@@ -121,7 +108,7 @@ public class LoginRegisterActivity extends AppCompatActivity {
                                 }
                             };
 
-                            requestQueue.add(stringRequest);
+                            requestQueue.add(stringRequest);*/
 
                         } else {
 
