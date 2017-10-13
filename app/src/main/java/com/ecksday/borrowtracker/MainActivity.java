@@ -62,17 +62,19 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_profile:
-
+                startActivity(new Intent(this, AccountActivity.class));
                 return true;
 
             case R.id.action_settings:
-                // User chose the "Settings" item, show the app settings UI...
+                startActivity(new Intent(this, SettingsActivity.class));
                 return true;
 
             case R.id.action_logout:
                 getSharedPreferences("logindetails", 0).edit().clear().apply();
-                startActivity(new Intent(this, LoginRegisterActivity.class));
-                this.finish();
+                Intent intent = new Intent(MainActivity.this, LoginRegisterActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
                 return true;
 
 

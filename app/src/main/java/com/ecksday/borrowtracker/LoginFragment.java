@@ -83,8 +83,10 @@ public class LoginFragment extends Fragment {
                             else {
                                 try {
                                     JSONObject jsonResponse = new JSONObject(stringResponse);
+                                    String User_Id_Holder = jsonResponse.getString("user_id");
                                     String F_Name_Holder = jsonResponse.getString("user_firstname");
                                     String L_Name_Holder = jsonResponse.getString("user_lastname");
+                                    editPreferences.putString("user_id", User_Id_Holder);
                                     editPreferences.putString("first_name",F_Name_Holder);
                                     editPreferences.putString("last_name",L_Name_Holder);
                                     editPreferences.putString("email",EmailHolder);

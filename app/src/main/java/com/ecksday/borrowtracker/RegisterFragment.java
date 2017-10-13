@@ -73,19 +73,26 @@ public class RegisterFragment extends Fragment {
                         StringRequest stringRequest = new StringRequest(Request.Method.POST, HttpRegistrationURL, new Response.Listener<String>() {
                             @Override
                             public void onResponse(String stringResponse) {
-                                Snackbar snackbar = Snackbar
-                                        .make(view, stringResponse, Snackbar.LENGTH_LONG);
-                                snackbar.show();
 
-                                if (stringResponse.equals("Registration Successful!")) {
 
+                                if (stringResponse.equals("Email already exists") | stringResponse.equals("Could not connect to database!")) {
+
+                                    Snackbar snackbar = Snackbar
+                                            .make(view, stringResponse, Snackbar.LENGTH_LONG);
+                                    snackbar.show();
+                                }
+
+                                else if (isInteger(stringResponse)){
+                                    editPreferences.putString("user_id", stringResponse);
                                     editPreferences.putString("first_name", F_Name_Holder);
                                     editPreferences.putString("last_name", L_Name_Holder);
                                     editPreferences.putString("email", EmailHolder);
                                     editPreferences.putString("password", PasswordHolder);
+                                    editPreferences.putString("password", PasswordHolder);
                                     editPreferences.apply();
                                     startActivity(new Intent(getActivity(), MainActivity.class));
                                     getActivity().finish();
+
                                 }
                             }
 
@@ -130,6 +137,31 @@ public class RegisterFragment extends Fragment {
 
         return RootView;
     }
+
+    public static boolean isInteger(String str) {
+        if (str == null) {
+            return false;
+        }
+        int length = str.length();
+        if (length == 0) {
+            return false;
+        }
+        int i = 0;
+        if (str.charAt(0) == '-') {
+            if (length == 1) {
+                return false;
+            }
+            i = 1;
+        }
+        for (; i < length; i++) {
+            char c = str.charAt(i);
+            if (c < '0' || c > '9') {
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     private boolean CheckEditTextIsNotEmpty(){
 
