@@ -7,12 +7,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-public class FriendViewFragment extends Fragment {
+public class FriendsFragment extends Fragment {
 
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        View RootView = inflater.inflate(R.layout.fragment_friend_view, container, false);
+        View RootView = inflater.inflate(R.layout.fragment_friends, container, false);
 
         return RootView;
     }

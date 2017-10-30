@@ -1,7 +1,6 @@
 package com.ecksday.borrowtracker;
 
 import android.app.Activity;
-import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Context;
@@ -25,10 +24,10 @@ public class MainActivity extends AppCompatActivity  {
             Fragment fragment = null;
             switch (item.getItemId()) {
                 case R.id.navigation_home:
-                    fragment = new BLViewFragment();
+                    fragment = new GiveCollectFragment();
                     break;
                 case R.id.navigation_dashboard:
-                    fragment = new FriendViewFragment();
+                    fragment = new FriendsFragment();
                     break;
                 case R.id.navigation_notifications:
                     return true;
@@ -54,7 +53,7 @@ public class MainActivity extends AppCompatActivity  {
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
-        Fragment fragment = new BLViewFragment();
+        Fragment fragment = new GiveCollectFragment();
         FragmentTransaction ft = getFragmentManager().beginTransaction();
         ft.replace(R.id.content_frame, fragment);
         ft.commit();
