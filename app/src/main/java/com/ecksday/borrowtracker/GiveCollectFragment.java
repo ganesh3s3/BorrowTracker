@@ -27,6 +27,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -98,7 +99,7 @@ public class GiveCollectFragment extends Fragment implements TransactionDialogFr
     }
 
     @Override
-    public void onDialogPositiveClick(final DialogFragment dialog, final String friend_id, final float transactionAmount) {
+    public void onDialogPositiveClick(final DialogFragment dialog, final String friend_id, final Money transactionAmount) {
         StringRequest stringRequest = new StringRequest(Request.Method.POST, HttpTransactionUrl, new Response.Listener<String>() {
             @Override
             public void onResponse(String stringResponse) {
@@ -133,7 +134,8 @@ public class GiveCollectFragment extends Fragment implements TransactionDialogFr
                 Map<String, String> parameters = new HashMap<String, String>();
                 parameters.put("user_id_1", User_Id_Holder);
                 parameters.put("user_id_2", friend_id);
-                parameters.put("transaction_amount", String.valueOf(transactionAmount));
+                parameters.put("transaction_amount", transactionAmount.getAmount().toString());
+                Log.e("transactionAmount",transactionAmount.getAmount().toString());
                 if(dialog.getTag().equals("give")){
                     parameters.put("transaction_code", "1");
                 }
@@ -165,20 +167,21 @@ public class GiveCollectFragment extends Fragment implements TransactionDialogFr
                 else {
                     try{
                         JSONArray jTotals = new JSONArray(stringResponse);
-                        Float YOP_Num=0f, POY_Num=0f;
+                        BigDecimal YOP_Num= new BigDecimal("0");
+                        BigDecimal POY_Num = new BigDecimal("0");
                         for (int i = 0; i < jTotals.length(); i++) {
                             JSONObject jTotal = jTotals.getJSONObject(i);
                             String current_total_string = jTotal.getString("current_total");
-                            Float current_total = Float.parseFloat(current_total_string);
-                            if(current_total>=0f){
-                                POY_Num+=current_total;
+                            BigDecimal current_total = new BigDecimal(current_total_string);
+                            if(current_total.compareTo(BigDecimal.ZERO)>0){
+                                POY_Num = POY_Num.add(current_total);
                             }
                             else {
-                                YOP_Num+=current_total;
+                                YOP_Num = YOP_Num.add(current_total);
                             }
                         }
                         POY_Num_View.setText(String.valueOf(POY_Num));
-                        YOP_Num_View.setText(String.valueOf(Math.abs(YOP_Num)));
+                        YOP_Num_View.setText(String.valueOf(YOP_Num.abs()));
                     }
                     catch (JSONException e) {
                         e.printStackTrace();

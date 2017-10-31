@@ -31,6 +31,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -58,8 +60,8 @@ public class TransactionDialogFragment extends DialogFragment {
     String User_Id_Holder;
 
     public interface TransactionDialogListener {
-        public void onDialogPositiveClick(DialogFragment dialog, String FriendId, float transactionAmount);
-        public void onDialogNegativeClick(DialogFragment dialog);
+        void onDialogPositiveClick(DialogFragment dialog, String FriendId, Money transactionAmount);
+        void onDialogNegativeClick(DialogFragment dialog);
     }
 
     // Use this instance of the interface to deliver action events
@@ -165,7 +167,9 @@ public class TransactionDialogFragment extends DialogFragment {
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
-                        final float transactionAmount = Float.parseFloat(TransactionAmount.getText().toString());
+                        BigDecimal modelVal = new BigDecimal(TransactionAmount.getText().toString());
+                        BigDecimal roundedVal = modelVal.setScale(2, RoundingMode.HALF_EVEN);
+                        Money transactionAmount = Money.rupees(roundedVal);
                         ((TransactionDialogListener)getTargetFragment()).onDialogPositiveClick(TransactionDialogFragment.this,friend_id, transactionAmount);
                     }
                 })
