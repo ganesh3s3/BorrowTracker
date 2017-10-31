@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
+import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,7 +43,8 @@ public class GiveCollectFragment extends Fragment implements TransactionDialogFr
     SharedPreferences sharedPreferences;
     String User_Id_Holder;
     RequestQueue requestQueue;
-    TextView POY_Text_View, POY_Num_View, YOP_Text_View, YOP_Num_View;
+    TextView POY_Num_View, YOP_Num_View;
+    CardView POY_Card, YOP_Card;
     Button GiveButton, CollectButton;
     String HttpTransactionUrl = "http://ecksday.com/btadmin/Transaction.php";
     String HttpRetrieveCurrentTotalsUrl = "http://ecksday.com/btadmin/RetrieveCurrentTotals.php";
@@ -54,21 +56,21 @@ public class GiveCollectFragment extends Fragment implements TransactionDialogFr
         sharedPreferences = getActivity().getSharedPreferences("logindetails",MODE_PRIVATE);
         requestQueue = Volley.newRequestQueue(getActivity());
         User_Id_Holder= sharedPreferences.getString("user_id","");
-        POY_Text_View = (TextView)RootView.findViewById(R.id.poy_text_view);
+        POY_Card = (CardView) RootView.findViewById(R.id.POY_card);
         POY_Num_View = (TextView)RootView.findViewById(R.id.poy_num_view);
-        YOP_Text_View = (TextView)RootView.findViewById(R.id.yop_text_view);
+        YOP_Card = (CardView) RootView.findViewById(R.id.YOP_card);
         YOP_Num_View = (TextView)RootView.findViewById(R.id.yop_num_view);
         GiveButton = (Button)RootView.findViewById(R.id.give_button);
         CollectButton = (Button)RootView.findViewById(R.id.collect_button);
 
-        POY_Text_View.setOnClickListener(new View.OnClickListener() {
+        POY_Card.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
             }
         });
 
-        YOP_Text_View.setOnClickListener(new View.OnClickListener() {
+        YOP_Card.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
@@ -180,8 +182,10 @@ public class GiveCollectFragment extends Fragment implements TransactionDialogFr
                                 YOP_Num = YOP_Num.add(current_total);
                             }
                         }
-                        POY_Num_View.setText(String.valueOf(POY_Num));
-                        YOP_Num_View.setText(String.valueOf(YOP_Num.abs()));
+                        Money POY_Money = Money.rupees(POY_Num);
+                        Money YOP_Money = Money.rupees(YOP_Num);
+                        POY_Num_View.setText(POY_Money.toString());
+                        YOP_Num_View.setText(YOP_Money.toString());
                     }
                     catch (JSONException e) {
                         e.printStackTrace();
