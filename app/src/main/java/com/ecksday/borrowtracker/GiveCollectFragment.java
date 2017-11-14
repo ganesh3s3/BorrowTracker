@@ -7,6 +7,9 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.CardView;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,7 +32,9 @@ import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static android.content.Context.MODE_PRIVATE;
@@ -47,7 +52,11 @@ public class GiveCollectFragment extends Fragment implements TransactionDialogFr
     CardView POY_Card, YOP_Card;
     Button GiveButton, CollectButton;
     String HttpTransactionUrl = "http://ecksday.com/btadmin/Transaction.php";
-    String HttpRetrieveCurrentTotalsUrl = "http://ecksday.com/btadmin/RetrieveCurrentTotals.php";
+    String HttpRetrieveFriendTotalsUrl = "http://ecksday.com/btadmin/RetrieveFriendTotals.php";
+
+    private List<Friend> friendsList = new ArrayList<>();;
+    private RecyclerView recyclerView;
+    private OweFriendListAdapter mAdapter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
@@ -63,17 +72,26 @@ public class GiveCollectFragment extends Fragment implements TransactionDialogFr
         GiveButton = (Button)RootView.findViewById(R.id.give_button);
         CollectButton = (Button)RootView.findViewById(R.id.collect_button);
 
+
+        recyclerView = (RecyclerView) RootView.findViewById(R.id.owe_recycler_view);
+
+        mAdapter = new OweFriendListAdapter(friendsList);
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
+        recyclerView.setLayoutManager(mLayoutManager);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.setAdapter(mAdapter);
+
         POY_Card.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                prepareTotalList(0);
             }
         });
 
         YOP_Card.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                prepareTotalList(1);
             }
         });
 
@@ -101,7 +119,7 @@ public class GiveCollectFragment extends Fragment implements TransactionDialogFr
     }
 
     @Override
-    public void onDialogPositiveClick(final DialogFragment dialog, final String friend_id, final Money transactionAmount) {
+    public void onDialogPositiveClick(final DialogFragment dialog, final Friend friend, final Money transactionAmount) {
         StringRequest stringRequest = new StringRequest(Request.Method.POST, HttpTransactionUrl, new Response.Listener<String>() {
             @Override
             public void onResponse(String stringResponse) {
@@ -135,7 +153,7 @@ public class GiveCollectFragment extends Fragment implements TransactionDialogFr
 
                 Map<String, String> parameters = new HashMap<String, String>();
                 parameters.put("user_id_1", User_Id_Holder);
-                parameters.put("user_id_2", friend_id);
+                parameters.put("user_id_2", friend.getFriend_id());
                 parameters.put("transaction_amount", transactionAmount.getAmount().toString());
                 Log.e("transactionAmount",transactionAmount.getAmount().toString());
                 if(dialog.getTag().equals("give")){
@@ -157,8 +175,79 @@ public class GiveCollectFragment extends Fragment implements TransactionDialogFr
     }
 
 
+    private void prepareTotalList(final int cardClicked) {
+        friendsList.clear();
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, HttpRetrieveFriendTotalsUrl, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String stringResponse) {
+                if(stringResponse.equals("No transactions found!")){
+                    Snackbar snackbar = Snackbar
+                            .make(getView(), stringResponse, Snackbar.LENGTH_LONG);
+                    snackbar.show();
+                }
+                else {
+                    try{
+                        JSONArray jTotals = new JSONArray(stringResponse);
+                        for (int i = 0; i < jTotals.length(); i++) {
+                            Friend friend = new Friend();
+                            JSONObject jTotal = jTotals.getJSONObject(i);
+                            String friend_firstname = jTotal.getString("user_firstname");
+                            String friend_lastname = jTotal.getString("user_lastname");
+                            String current_total_string = jTotal.getString("current_total");
+                            BigDecimal current_total = new BigDecimal(current_total_string);
+                            if(cardClicked==0 && current_total.compareTo(BigDecimal.ZERO)>0) {
+                                friend.setFriend_firstname(friend_firstname);
+                                friend.setFriend_lastname(friend_lastname);
+                                friend.setCurrent_total(current_total_string);
+                                friendsList.add(friend);
+                            }
+                            else if(cardClicked==1 && current_total.compareTo(BigDecimal.ZERO)<0){
+                                friend.setFriend_firstname(friend_firstname);
+                                friend.setFriend_lastname(friend_lastname);
+                                friend.setCurrent_total(current_total_string);
+                                friendsList.add(friend);
+                            }
+                        }
+                        mAdapter.notifyDataSetChanged();
+                    }
+                    catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }
+        }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                NetworkResponse errorRes = error.networkResponse;
+                String stringData = "";
+                try{
+                    if(errorRes != null && errorRes.data != null){
+                        stringData = new String(errorRes.data,"UTF-8");
+                    }}
+                catch (UnsupportedEncodingException e){
+
+                }
+                Log.e("Error",stringData);
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+
+                Map<String, String> parameters = new HashMap<String, String>();
+                parameters.put("user_id", User_Id_Holder);
+                return parameters;
+            }
+        };
+
+        requestQueue.add(stringRequest);
+
+    }
+
+
     private void updateOweNum(){
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, HttpRetrieveCurrentTotalsUrl, new Response.Listener<String>() {
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, HttpRetrieveFriendTotalsUrl, new Response.Listener<String>() {
             @Override
             public void onResponse(String stringResponse) {
                 if(stringResponse.equals("No transactions found!")){
@@ -183,7 +272,7 @@ public class GiveCollectFragment extends Fragment implements TransactionDialogFr
                             }
                         }
                         Money POY_Money = Money.rupees(POY_Num);
-                        Money YOP_Money = Money.rupees(YOP_Num);
+                        Money YOP_Money = Money.rupees(YOP_Num.abs());
                         POY_Num_View.setText(POY_Money.toString());
                         YOP_Num_View.setText(YOP_Money.toString());
                     }

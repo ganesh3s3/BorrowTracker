@@ -5,44 +5,29 @@ import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.text.InputFilter;
 import android.text.Spanned;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.NetworkResponse;
-import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import fr.ganfra.materialspinner.MaterialSpinner;
 
 import static android.content.Context.MODE_PRIVATE;
+import static com.ecksday.borrowtracker.FriendsFragment.fetchFriendsList;
 
 /**
  * Created by G551JK-DM053H on 13-10-2017.
@@ -51,16 +36,15 @@ import static android.content.Context.MODE_PRIVATE;
 public class TransactionDialogFragment extends DialogFragment {
 
     RequestQueue requestQueue;
-    String HttpRetrieveFriendsUrl = "http://ecksday.com/btadmin/RetrieveFriends.php";
-    List<String> friendsList = new ArrayList<>();
-    private HashMap<String, String> hmapcat = new HashMap<>();
-    String friend_id;
 
     SharedPreferences sharedPreferences;
     String User_Id_Holder;
 
+    List<Friend> friendsList = new ArrayList<>();
+    String selectedFriend_id;
+
     public interface TransactionDialogListener {
-        void onDialogPositiveClick(DialogFragment dialog, String FriendId, Money transactionAmount);
+        void onDialogPositiveClick(DialogFragment dialog, Friend friend, Money transactionAmount);
         void onDialogNegativeClick(DialogFragment dialog);
     }
 
@@ -78,88 +62,16 @@ public class TransactionDialogFragment extends DialogFragment {
         sharedPreferences = getActivity().getSharedPreferences("logindetails",MODE_PRIVATE);
         User_Id_Holder= sharedPreferences.getString("user_id","");
 
+        friendsList = fetchFriendsList(requestQueue, User_Id_Holder);
+
         final Spinner friendPicker = (MaterialSpinner)RootView.findViewById(R.id.friend_picker);
-        friendPicker.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 
-            @Override
-            public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-
-                String friend_full_name = friendPicker.getSelectedItem().toString();
-                Log.i("Selected item : ", friend_full_name);
-                friend_id=hmapcat.get(friend_full_name );  // here you will get ids
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> arg0) {
-
-            }
-
-        });
-        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, friendsList);
+        ArrayAdapter<Friend> dataAdapter = new ArrayAdapter<Friend>(getActivity(), android.R.layout.simple_spinner_item, friendsList);
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         friendPicker.setAdapter(dataAdapter);
 
         final EditText TransactionAmount = (EditText) RootView.findViewById(R.id.transaction_amount);
         TransactionAmount.setFilters(new InputFilter[] {new CurrencyFormatInputFilter()});
-
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, HttpRetrieveFriendsUrl, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String stringResponse) {
-                if(stringResponse.equals("No friends. FeelsBadMan :gun:")){
-                    Snackbar snackbar = Snackbar
-                            .make(RootView, stringResponse, Snackbar.LENGTH_LONG);
-                    snackbar.show();
-                    friendPicker.setEnabled(false);
-                    TransactionAmount.setEnabled(false);
-                }
-                else {
-                    try {
-                        JSONArray jFriends = new JSONArray(stringResponse);
-                        for (int i = 0; i < jFriends.length(); i++) {
-                            JSONObject jFriend = jFriends.getJSONObject(i);
-                            String friend_id = jFriend.getString("user_id_2");
-                            String friend_full_name = jFriend.getString(("friend_full_name"));
-                            friendsList.add(friend_full_name);
-                            hmapcat.put(friend_full_name, friend_id);
-                        }
-                    }
-                    catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
-        }, new Response.ErrorListener() {
-
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                NetworkResponse errorRes = error.networkResponse;
-                String stringData = "";
-                try{
-                    if(errorRes != null && errorRes.data != null){
-                        stringData = new String(errorRes.data,"UTF-8");
-                    }}
-                catch (UnsupportedEncodingException e){
-
-                }
-                Log.e("Error",stringData);
-            }
-        }) {
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-
-                Map<String, String> parameters = new HashMap<String, String>();
-                parameters.put("user_id", User_Id_Holder);
-                return parameters;
-            }
-        };
-
-        requestQueue.add(stringRequest);
-
-
-
-
-
 
         builder.setMessage("Enter Details")
                 .setView(RootView)
@@ -170,7 +82,7 @@ public class TransactionDialogFragment extends DialogFragment {
                         BigDecimal modelVal = new BigDecimal(TransactionAmount.getText().toString());
                         BigDecimal roundedVal = modelVal.setScale(2, RoundingMode.HALF_EVEN);
                         Money transactionAmount = Money.rupees(roundedVal);
-                        ((TransactionDialogListener)getTargetFragment()).onDialogPositiveClick(TransactionDialogFragment.this,friend_id, transactionAmount);
+                        ((TransactionDialogListener)getTargetFragment()).onDialogPositiveClick(TransactionDialogFragment.this, (Friend)friendPicker.getSelectedItem(), transactionAmount);
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

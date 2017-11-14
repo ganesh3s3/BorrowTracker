@@ -5,14 +5,15 @@ package com.ecksday.borrowtracker;
  */
 
 public class Friend {
-    private String friend_id, friend_fullname, current_total;
+    private String friend_id, friend_firstname, friend_lastname, current_total;
 
     public Friend() {
     }
 
-    public Friend(String friend_id, String friend_fullname, String current_total) {
+    public Friend(String friend_id, String friend_firstname, String friend_lastname, String current_total) {
         this.friend_id = friend_id;
-        this.friend_fullname = friend_fullname;
+        this.friend_firstname = friend_firstname;
+        this.friend_lastname = friend_lastname;
         this.current_total = current_total;
     }
 
@@ -24,12 +25,20 @@ public class Friend {
         this.friend_id = friend_id;
     }
 
-    public String getFriend_fullname() {
-        return friend_fullname;
+    public String getFriend_firstname() {
+        return friend_firstname;
     }
 
-    public void setFriend_fullname(String friend_fullname) {
-        this.friend_fullname = friend_fullname;
+    public void setFriend_firstname(String friend_firstname) {
+        this.friend_firstname = friend_firstname;
+    }
+
+    public String getFriend_lastname() {
+        return friend_lastname;
+    }
+
+    public void setFriend_lastname(String friend_lastname) {
+        this.friend_lastname = friend_lastname;
     }
 
     public String getCurrent_total() {
@@ -38,5 +47,10 @@ public class Friend {
 
     public void setCurrent_total(String current_total) {
         this.current_total = current_total;
+    }
+
+    @Override
+    public String toString() {
+        return friend_firstname + " " + friend_lastname;
     }
 }

@@ -124,7 +124,7 @@ public class LoginFragment extends Fragment {
                         @Override
                         protected Map<String, String> getParams() throws AuthFailureError {
 
-                            Map<String, String> parameters = new HashMap<String, String>();
+                            Map<String, String> parameters = new HashMap<>();
                             parameters.put("email", EmailHolder);
                             parameters.put("password", PasswordHolder);
                             return parameters;

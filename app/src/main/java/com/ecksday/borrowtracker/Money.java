@@ -1,5 +1,7 @@
 package com.ecksday.borrowtracker;
 
+import android.util.Log;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Currency;
@@ -24,7 +26,7 @@ public class Money {
     Money(BigDecimal amount, Currency currency, RoundingMode rounding) {
         this.amount = amount;
         this.currency = currency;
-
+        Log.e("ROUNDING", amount.toString());
         this.amount = amount.setScale(currency.getDefaultFractionDigits(), rounding);
     }
 
