@@ -39,7 +39,7 @@ public class OweFriendListAdapter extends RecyclerView.Adapter<OweFriendListAdap
     public void onBindViewHolder(MyViewHolder holder, int position) {
         Friend friend = friendsList.get(position);
         holder.friend_fullname.setText(friend.toString());
-        holder.current_total.setText(friend.getCurrent_total());
+        holder.current_total.setText(friend.getCurrent_total().toString());
     }
 
     @Override

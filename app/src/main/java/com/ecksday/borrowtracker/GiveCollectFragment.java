@@ -55,7 +55,6 @@ public class GiveCollectFragment extends Fragment implements TransactionDialogFr
     String HttpRetrieveFriendTotalsUrl = "http://ecksday.com/btadmin/RetrieveFriendTotals.php";
 
     private List<Friend> friendsList = new ArrayList<>();;
-    private RecyclerView recyclerView;
     private OweFriendListAdapter mAdapter;
 
     @Override
@@ -73,7 +72,7 @@ public class GiveCollectFragment extends Fragment implements TransactionDialogFr
         CollectButton = (Button)RootView.findViewById(R.id.collect_button);
 
 
-        recyclerView = (RecyclerView) RootView.findViewById(R.id.owe_recycler_view);
+        RecyclerView recyclerView = (RecyclerView) RootView.findViewById(R.id.owe_recycler_view);
 
         mAdapter = new OweFriendListAdapter(friendsList);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
@@ -195,16 +194,17 @@ public class GiveCollectFragment extends Fragment implements TransactionDialogFr
                             String friend_lastname = jTotal.getString("user_lastname");
                             String current_total_string = jTotal.getString("current_total");
                             BigDecimal current_total = new BigDecimal(current_total_string);
+                            Money current_total_money = Money.rupees(current_total.abs());
                             if(cardClicked==0 && current_total.compareTo(BigDecimal.ZERO)>0) {
                                 friend.setFriend_firstname(friend_firstname);
                                 friend.setFriend_lastname(friend_lastname);
-                                friend.setCurrent_total(current_total_string);
+                                friend.setCurrent_total(current_total_money);
                                 friendsList.add(friend);
                             }
                             else if(cardClicked==1 && current_total.compareTo(BigDecimal.ZERO)<0){
                                 friend.setFriend_firstname(friend_firstname);
                                 friend.setFriend_lastname(friend_lastname);
-                                friend.setCurrent_total(current_total_string);
+                                friend.setCurrent_total(current_total_money);
                                 friendsList.add(friend);
                             }
                         }
