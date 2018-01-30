@@ -4,10 +4,12 @@ import android.app.DialogFragment;
 import android.app.Fragment;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -37,7 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static android.content.Context.MODE_PRIVATE;
+import static com.ecksday.borrowtracker.MainActivity.User_Id_Holder;
 
 /**
  * Created by G551JK-DM053H on 13-10-2017.
@@ -46,7 +48,6 @@ import static android.content.Context.MODE_PRIVATE;
 public class GiveCollectFragment extends Fragment implements TransactionDialogFragment.TransactionDialogListener {
 
     SharedPreferences sharedPreferences;
-    String User_Id_Holder;
     RequestQueue requestQueue;
     TextView POY_Num_View, YOP_Num_View;
     CardView POY_Card, YOP_Card;
@@ -61,9 +62,7 @@ public class GiveCollectFragment extends Fragment implements TransactionDialogFr
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View RootView = inflater.inflate(R.layout.fragment_give_collect, container, false);
 
-        sharedPreferences = getActivity().getSharedPreferences("logindetails",MODE_PRIVATE);
         requestQueue = Volley.newRequestQueue(getActivity());
-        User_Id_Holder= sharedPreferences.getString("user_id","");
         POY_Card = (CardView) RootView.findViewById(R.id.POY_card);
         POY_Num_View = (TextView)RootView.findViewById(R.id.poy_num_view);
         YOP_Card = (CardView) RootView.findViewById(R.id.YOP_card);
@@ -71,12 +70,15 @@ public class GiveCollectFragment extends Fragment implements TransactionDialogFr
         GiveButton = (Button)RootView.findViewById(R.id.give_button);
         CollectButton = (Button)RootView.findViewById(R.id.collect_button);
 
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
 
         RecyclerView recyclerView = (RecyclerView) RootView.findViewById(R.id.owe_recycler_view);
 
         mAdapter = new OweFriendListAdapter(friendsList);
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
+        LinearLayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(mLayoutManager);
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), mLayoutManager.getOrientation());
+        recyclerView.addItemDecoration(dividerItemDecoration);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(mAdapter);
 

@@ -1,31 +1,25 @@
 package com.ecksday.borrowtracker;
 
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.NetworkResponse;
-import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
+import com.firebase.ui.auth.AuthUI;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.ecksday.borrowtracker.MainActivity.hideKeyboardFrom;
 
@@ -35,15 +29,17 @@ import static com.ecksday.borrowtracker.MainActivity.hideKeyboardFrom;
 
 public class AccountActivity extends AppCompatActivity {
 
-    Button Update,Delete;
-    EditText First_Name, Last_Name, Email, Password, PasswordMatch ;
-    String User_Id_Holder,F_Name_Holder, L_Name_Holder, EmailHolder, PasswordHolder,PasswordMatchHolder;
-    String HttpUpdateURL = "http://ecksday.com/btadmin/AccountUpdate.php";
-    String HttpDetailsURL = "http://ecksday.com/btadmin/AccountDetails.php";
-    String HttpDeleteURL = "http://ecksday.com/btadmin/AccountDelete.php";
-    Boolean CheckEditText ;
+    Button Delete, Update;
+    EditText DisplayName, Email;
     RequestQueue requestQueue;
-    SharedPreferences sharedPreferences;
+    //FirebaseAuth.AuthStateListener mAuthListener;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        //mAuth.addAuthStateListener(mAuthListener);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,140 +47,18 @@ public class AccountActivity extends AppCompatActivity {
         setContentView(R.layout.activity_account);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        requestQueue = Volley.newRequestQueue(this);
-
         //Assign Id'S
-        First_Name = (EditText)findViewById(R.id.account_firstname);
-        Last_Name = (EditText)findViewById(R.id.account_lastname);
+        DisplayName = (EditText)findViewById(R.id.account_firstname);
         Email = (EditText)findViewById(R.id.account_email);
-        Password = (EditText)findViewById(R.id.account_password);
-        PasswordMatch = (EditText)findViewById(R.id.account_password_match);
 
-        sharedPreferences = getSharedPreferences("logindetails",MODE_PRIVATE);
-        User_Id_Holder= sharedPreferences.getString("user_id","");
+        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        displayUserDetails(user);
 
-        StringRequest detailsRequest = new StringRequest(Request.Method.POST, HttpDetailsURL, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String stringResponse) {
-                if(stringResponse.equals("User not found.")){
-                    Snackbar snackbar = Snackbar
-                            .make(First_Name, stringResponse, Snackbar.LENGTH_LONG);
-                    snackbar.show();
-                }
-                else {
-                    try {
-                        JSONObject jsonResponse = new JSONObject(stringResponse);
-                        F_Name_Holder = jsonResponse.getString("user_firstname");
-                        L_Name_Holder = jsonResponse.getString("user_lastname");
-                        EmailHolder = jsonResponse.getString("user_email");
-                        PasswordHolder = jsonResponse.getString("user_password");
-                        First_Name.setText(F_Name_Holder);
-                        Last_Name.setText(L_Name_Holder);
-                        Email.setText(EmailHolder);
-                        Password.setText(PasswordHolder);
-                        PasswordMatch.setText(PasswordHolder);
-
-                    }
-                    catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
-        }, new Response.ErrorListener() {
-
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                NetworkResponse errorRes = error.networkResponse;
-                String stringData = "";
-                try{
-                    if(errorRes != null && errorRes.data != null){
-                        stringData = new String(errorRes.data,"UTF-8");
-                    }}
-                catch (UnsupportedEncodingException e){
-
-                }
-                Log.e("Error",stringData);
-            }
-        }) {
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-
-                Map<String, String> parameters = new HashMap<String, String>();
-                parameters.put("user_id", User_Id_Holder);
-                return parameters;
-            }
-        };
-
-        requestQueue.add(detailsRequest);
-
-        Update = (Button)findViewById(R.id.account_update);
+        Update = (Button) findViewById(R.id.account_update);
         Update.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
-                hideKeyboardFrom(AccountActivity.this, view);
-
-                // Checking whether EditText is Empty or Not
-                CheckEditTextIsEmptyOrNot();
-
-                if(CheckEditText){
-                    if(PasswordHolder.equals(PasswordMatchHolder)) {
-
-                        // If EditText is not empty and CheckEditText = True then this block will execute.
-                        StringRequest stringRequest = new StringRequest(Request.Method.POST, HttpUpdateURL, new Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String stringResponse) {
-                                Snackbar snackbar = Snackbar
-                                        .make(view, stringResponse, Snackbar.LENGTH_LONG);
-                                snackbar.show();
-
-                            }
-
-                        }, new Response.ErrorListener() {
-
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                NetworkResponse errorRes = error.networkResponse;
-                                String stringData = "";
-                                try{
-                                    if(errorRes != null && errorRes.data != null){
-                                        stringData = new String(errorRes.data,"UTF-8");
-                                    }}
-                                catch (UnsupportedEncodingException e){
-
-                                }
-                                Log.e("Error",stringData);
-                            }
-                        }) {
-                            @Override
-                            protected Map<String, String> getParams() throws AuthFailureError {
-                                Map<String, String> parameters = new HashMap<String, String>();
-                                parameters.put("user_id", User_Id_Holder);
-                                parameters.put("f_name", F_Name_Holder);
-                                parameters.put("L_name", L_Name_Holder);
-                                parameters.put("email", EmailHolder);
-                                parameters.put("password", PasswordHolder);
-                                return parameters;
-                            }
-                        };
-
-                        requestQueue.add(stringRequest);
-                    }
-                    else{
-                        Snackbar snackbar = Snackbar
-                                .make(view, "Passwords do not match. Try again.", Snackbar.LENGTH_LONG);
-                        snackbar.show();
-                    }
-
-                }
-                else {
-
-                    // If EditText is empty then this block will execute .
-                    Snackbar snackbar = Snackbar
-                            .make(view, "Please fill all the form fields.", Snackbar.LENGTH_LONG);
-                    snackbar.show();
-
-                }
+                updateAccountDetails(user);
             }
             });
 
@@ -192,65 +66,93 @@ public class AccountActivity extends AppCompatActivity {
         Delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
-                StringRequest deleteRequest= new StringRequest(Request.Method.POST, HttpDeleteURL , new Response.Listener<String>(){
-                    @Override
-                    public void onResponse(String stringResponse){
-
-                        Snackbar snackbar = Snackbar
-                                .make(view, stringResponse, Snackbar.LENGTH_LONG);
-                        snackbar.show();
-
-                        if(stringResponse.equals("Account deleted successfully!")) {
-                            getSharedPreferences("logindetails", 0).edit().clear().apply();
-
-                            Intent intent = new Intent(AccountActivity.this, LoginRegisterActivity.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);
-                            finish();
-                        }
-                    }
-
-                }, new Response.ErrorListener() {
-
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        NetworkResponse errorRes = error.networkResponse;
-                        String stringData = "";
-                        try{
-                            if(errorRes != null && errorRes.data != null){
-                                stringData = new String(errorRes.data,"UTF-8");
-                            }}
-                        catch (UnsupportedEncodingException e){
-
-                        }
-                        Log.e("Error",stringData);
-                    }
-                }){
-                    @Override
-                    protected Map<String, String> getParams() throws AuthFailureError {
-                        Map<String,String> parameters = new HashMap<String,String>();
-                        parameters.put("user_id",User_Id_Holder);
-                        return parameters;
-                    }
-                };
-                requestQueue.add(deleteRequest);
+                hideKeyboardFrom(AccountActivity.this, view);
+                AuthUI.getInstance()
+                        .delete(AccountActivity.this)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if(task.isSuccessful()){
+                                    //signOut();
+                                }else {
+                                    displayMessage("Error Signing Out!");
+                                }
+                            }
+                        });
             }
         });
     }
 
-    public void CheckEditTextIsEmptyOrNot(){
+    private void updateAccountDetails(FirebaseUser user) {
+        hideKeyboardFrom(this, findViewById(R.id.account_layout));
+        if(!CheckEditTextIsEmptyOrNot()) {
 
-        F_Name_Holder = First_Name.getText().toString();
-        L_Name_Holder = Last_Name.getText().toString();
-        EmailHolder = Email.getText().toString();
-        PasswordHolder = Password.getText().toString();
-        PasswordMatchHolder = PasswordMatch.getText().toString();
+            if(!isValidName()) {
+                displayMessage("Please enter a valid name");
+            }
+             else if(!isValidEmail()) {
+                displayMessage("Please enter a valid email address");
+            }
+            else {
 
-        if(TextUtils.isEmpty(F_Name_Holder) || TextUtils.isEmpty(L_Name_Holder) || TextUtils.isEmpty(EmailHolder) || TextUtils.isEmpty(PasswordHolder) || TextUtils.isEmpty(PasswordMatchHolder)) {
-            CheckEditText = false;
+                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                        .setDisplayName(DisplayName.getText().toString()).build();
+
+                user.updateProfile(profileUpdates)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    displayMessage("Profile updated!");
+                                } else {
+                                    displayMessage("Error while updating profile");
+                                }
+                            }
+                        });
+            }
         }
         else {
-            CheckEditText = true ;
+            displayMessage(getString(R.string.please_fill));
+        }
+    }
+
+    private boolean isValidEmail() {
+        return Patterns.EMAIL_ADDRESS.matcher(Email.getText().toString()).matches();
+    }
+
+    /*private boolean isUserLoggedIn(){
+        if(mAuth.getCurrentUser() != null){
+            return true;
+        }
+        return false;
+    }*/
+private boolean isValidName(){
+    String regex = "^([a-z]+[,.]?[ ]?|[a-z]+['-]?)+$";
+    Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+    Matcher matcher = pattern.matcher(DisplayName.getText().toString());
+    return matcher.find();
+}
+    private void displayMessage(String message){
+        Snackbar snackbar = Snackbar
+                .make(findViewById(R.id.account_layout), message, Snackbar.LENGTH_LONG);
+        snackbar.show();
+    }
+
+    private void displayUserDetails(FirebaseUser user) {
+
+        if (user != null) {
+            DisplayName.setText(user.getDisplayName());
+            Email.setText(user.getEmail());
+        }
+    }
+
+    public boolean CheckEditTextIsEmptyOrNot(){
+
+        if(TextUtils.isEmpty(DisplayName.getText().toString()) || TextUtils.isEmpty(Email.getText().toString())) {
+            return true;
+        }
+        else {
+            return false;
         }
     }
 }

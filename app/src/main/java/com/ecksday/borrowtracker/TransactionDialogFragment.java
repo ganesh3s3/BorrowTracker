@@ -3,7 +3,6 @@ package com.ecksday.borrowtracker;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.text.InputFilter;
@@ -26,7 +25,6 @@ import java.util.regex.Pattern;
 
 import fr.ganfra.materialspinner.MaterialSpinner;
 
-import static android.content.Context.MODE_PRIVATE;
 import static com.ecksday.borrowtracker.FriendsFragment.fetchFriendsList;
 
 /**
@@ -36,9 +34,6 @@ import static com.ecksday.borrowtracker.FriendsFragment.fetchFriendsList;
 public class TransactionDialogFragment extends DialogFragment {
 
     RequestQueue requestQueue;
-
-    SharedPreferences sharedPreferences;
-    String User_Id_Holder;
 
     List<Friend> friendsList = new ArrayList<>();
     String selectedFriend_id;
@@ -59,10 +54,8 @@ public class TransactionDialogFragment extends DialogFragment {
 
         final View RootView = inflater.inflate(R.layout.fragment_transaction_dialog, null);
         requestQueue = Volley.newRequestQueue(getActivity());
-        sharedPreferences = getActivity().getSharedPreferences("logindetails",MODE_PRIVATE);
-        User_Id_Holder= sharedPreferences.getString("user_id","");
 
-        friendsList = fetchFriendsList(requestQueue, User_Id_Holder);
+        friendsList = fetchFriendsList(requestQueue);
 
         final Spinner friendPicker = (MaterialSpinner)RootView.findViewById(R.id.friend_picker);
 

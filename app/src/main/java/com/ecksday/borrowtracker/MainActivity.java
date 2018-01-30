@@ -14,7 +14,21 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
+import com.firebase.ui.auth.AuthUI;
+import com.google.firebase.auth.FirebaseAuth;
+
 public class MainActivity extends AppCompatActivity  {
+
+    FirebaseAuth mAuth;
+    FirebaseAuth.AuthStateListener mAuthListener;
+ public static String User_Id_Holder = "GG";
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        mAuth.addAuthStateListener(mAuthListener);
+    }
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -53,6 +67,19 @@ public class MainActivity extends AppCompatActivity  {
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
+
+        mAuth = FirebaseAuth.getInstance();
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                if(firebaseAuth.getCurrentUser()==null) {
+                    startActivity(new Intent(MainActivity.this, LoginRegisterActivity.class));
+                }
+            }
+        };
+
+
+
         Fragment fragment = new GiveCollectFragment();
         FragmentTransaction ft = getFragmentManager().beginTransaction();
         ft.replace(R.id.content_frame, fragment);
@@ -78,11 +105,7 @@ public class MainActivity extends AppCompatActivity  {
                 return true;
 
             case R.id.action_logout:
-                getSharedPreferences("logindetails", 0).edit().clear().apply();
-                Intent intent = new Intent(MainActivity.this, LoginRegisterActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-                finish();
+                AuthUI.getInstance().signOut(MainActivity.this);
                 return true;
 
 
